@@ -6,6 +6,7 @@ TRADE_DATE_COL = 'TradeDate'
 
 file = ARGV[0].to_s.strip
 min_date = ARGV[1].to_s.strip
+max_date = ARGV[2].to_s.strip
 
 if file == '' || !File.exist?(File.expand_path(file))
   puts "File not found: #{file}"
@@ -16,6 +17,12 @@ if min_date == ''
   puts "Minimum date not specified. Expected format: yyyy-mm-dd"
 else
   min_date = Date.new(*min_date.split('-').map { |d| d.to_i })
+end
+
+max_date = if max_date == ''
+  Date.new(2999, 1, 1)
+else
+  Date.new(*max_date.split('-').map { |d| d.to_i })
 end
 
 
@@ -39,10 +46,7 @@ if file =~ /\.csv$/
   csv[1..-1].each do |row|
     d = row[date_index]
     d = Date.new(d[0..3].to_i, d[4..5].to_i, d[6..7].to_i)
-
-    unless d < min_date
-      output << row
-    end
+    output << row if d.between?(min_date, max_date)
   end; csv = nil
 
   CSV.open(file, "wb") do |csv|
@@ -56,4 +60,4 @@ elsif file =~ /\.xml$/
   exit 1
 end
 
-
+puts "Done!"
